@@ -44,23 +44,32 @@ def get_all_books():
 @app.route('/get/notes')
 def get_notes():
     book_name = request.args.get('book')
+    all_notes = []
 
     if book_name:
         book = Books.query.filter_by(title=book_name).first()
 
         if book:
             notes = Notes.query.filter_by(book_id=book.id).all()
-            all_notes = []
 
             for note in notes:
-                chapter = Chapters.query.get(note.chapter_id)
+                chapter = db.session.get(Chapters, note.chapter_id)
                 all_notes.append({'id': note.id, 'book': book.title, 'content': note.content, 'chapter': chapter.chapter_name})
 
             return jsonify(all_notes), 200
         else:
             return jsonify({'message': 'Book not found'}), 404
     else:
-        return jsonify({'message': 'Please provide the book name as a query parameter'}), 400
+        notes = Notes.query.all()
+
+        for note in notes:
+            book = db.session.get(Books, note.book_id)
+            chapter = db.session.get(Chapters, note.chapter_id)
+            all_notes.append({'id': note.id, 'book': book.title, 'content': note.content, 'chapter': chapter.chapter_name})
+
+        return jsonify(all_notes), 200
+
+    
 
 
 if __name__ == '__main__':

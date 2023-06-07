@@ -52,7 +52,7 @@ def admin():
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
-    return 'Welcome to the admin dashboard!'
+    return render_template('admin_interface.html')
 
 @app.route('/logout')
 @login_required

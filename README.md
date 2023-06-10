@@ -1,1 +1,1 @@
-# phylosophy-api
+# philosophy-api

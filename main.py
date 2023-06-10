@@ -42,16 +42,16 @@ def admin():
         admin = Admin.query.filter_by(username=username).first()
         if admin and admin.check_password(password=password):
             login_user(admin)
-            return redirect(url_for('admin_dashboard'))
+            return redirect(url_for('admin_interface'))
         else:
             flash('Invalid username or password')
             return redirect(url_for('admin'))
 
     return render_template('admin_login.html')
 
-@app.route('/admin/dashboard')
+@app.route('/admin/interface')
 @login_required
-def admin_dashboard():
+def admin_interface():
     return render_template('admin_interface.html')
 
 @app.route('/logout')

@@ -18,13 +18,14 @@
     <div class="container">
       <div class="card">
         <h3 class="mb-4">Enter Book Details</h3>
-        <form>
+        <form method="post">
           <div class="row mb-4">
             <div class="col">
               <div class="form-floating">
                 <input
                   type="text"
                   id="author"
+                  name="author"
                   class="form-control"
                   placeholder=" "
                 />
@@ -36,6 +37,7 @@
                 <input
                   type="text"
                   id="book"
+                  name="book"
                   class="form-control"
                   placeholder=" "
                 />
@@ -48,6 +50,7 @@
             <input
               type="text"
               id="chapter"
+              name="chapter"
               class="form-control"
               placeholder=" "
             />
@@ -57,6 +60,7 @@
           <div class="form-floating mb-4">
             <textarea
               id="authorBio"
+              name="bio"
               class="form-control"
               rows="4"
               placeholder=" "
@@ -68,6 +72,7 @@
             <textarea
               class="form-control"
               id="content"
+              name="content"
               rows="4"
               placeholder=" "
             ></textarea>

@@ -1,5 +1,7 @@
 import os
 
+from datetime import date
+
 from flask import Flask, jsonify, request, render_template, redirect, url_for, flash
 
 from flask_login import LoginManager, login_user, login_required, logout_user
@@ -9,6 +11,8 @@ from dotenv import load_dotenv
 from models import db, Books, Author, Notes, Chapters
 
 from admin import Admin
+
+from book_form import BookForm
 
 app = Flask(__name__)
 
@@ -27,7 +31,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 @login_manager.user_loader
 def load_user(user_id):
-    return Admin.query.get(user_id)
+    return db.session.query(Admin).get(user_id)
 
 @app.route('/')
 def home():
@@ -36,7 +40,7 @@ def home():
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     if request.method == 'POST':
-        username = request.form["username"]
+        username = request.form['username']
         password = request.form['password']
 
         admin = Admin.query.filter_by(username=username).first()
@@ -49,10 +53,37 @@ def admin():
 
     return render_template('admin_login.html')
 
-@app.route('/admin/interface')
+@app.route('/admin/interface', methods=['GET', 'POST'])
 @login_required
 def admin_interface():
-    return render_template('admin_interface.html')
+    form = BookForm()
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            author = form.author.data
+            book = form.book.data
+            chapter = form.chapter.data
+            bio = form.bio.data
+            content = form.content.data
+            current_date = date.today().strftime("%Y-%m-%d")
+
+            new_author = Author(name=author, biography=bio)
+            new_book = Books(title=book, author=new_author)
+            new_chapter = Chapters(book=new_book, chapter_name=chapter)
+            new_note = Notes(book=new_book, chapter=new_chapter, content=content, created_date=current_date)
+
+            try:
+                db.session.add_all([new_author, new_book, new_chapter, new_note])
+                db.session.commit()
+                db_error = False
+                flash('Form submitted successfully')
+            except:
+                db_error = True
+                flash('Something went wrong with the database.')
+            finally:
+                return redirect(url_for('admin_interface', db_error=db_error))
+
+    return render_template('admin_interface.html', form=form)
 
 @app.route('/logout')
 @login_required

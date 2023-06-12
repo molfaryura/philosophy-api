@@ -22,3 +22,11 @@ body {
 .custom-button:hover {
   background-color: darkgreen;
 }
+
+.success {
+  color: #16ff00;
+}
+
+.error {
+  color: red;
+}

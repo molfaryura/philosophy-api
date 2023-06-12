@@ -18,6 +18,7 @@ class Chapters(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
     chapter_name = db.Column(db.String(250), nullable=False)
+    book = db.relationship('Books', backref=db.backref('chapters', lazy=True))
 
 
 class Notes(db.Model):
@@ -26,3 +27,5 @@ class Notes(db.Model):
     chapter_id = db.Column(db.Integer, db.ForeignKey('chapters.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_date = db.Column(db.Date, nullable=False)
+    book = db.relationship('Books', backref=db.backref('notes', lazy=True))
+    chapter = db.relationship('Chapters', backref=db.backref('notes', lazy=True))

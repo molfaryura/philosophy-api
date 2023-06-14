@@ -57,12 +57,13 @@
           <div class="text-center">
             {{ form.submit(class="custom-button", id="colorButton") }}
           </div>
-          {% for message in get_flashed_messages() %} {% if not db_error %}
-          <p class="success text-center" style="margin-top: 20px">
+          {% for message in get_flashed_messages() %} {% if not new_obj or
+          db_error %}
+          <p class="error text-center" style="margin-top: 20px">
             {{ message }}
           </p>
           {% else %}
-          <p class="error text-center" style="margin-top: 20px">
+          <p class="success text-center" style="margin-top: 20px">
             {{ message }}
           </p>
           {% endif %} {% endfor %}

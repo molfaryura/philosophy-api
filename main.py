@@ -38,7 +38,7 @@ def home():
     return render_template('index.html')
 
 @app.route('/admin', methods=['GET', 'POST'])
-def admin():
+def admin_route():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -47,9 +47,8 @@ def admin():
         if admin and admin.check_password(password=password):
             login_user(admin)
             return redirect(url_for('admin_interface'))
-        else:
-            flash('Invalid username or password')
-            return redirect(url_for('admin'))
+        flash('Invalid username or password')
+        return redirect(url_for('admin'))
 
     return render_template('admin_login.html')
 
@@ -63,14 +62,34 @@ def admin_interface():
             author = form.author.data
             book = form.book.data
             chapter = form.chapter.data
-            bio = form.bio.data
             content = form.content.data
-            current_date = date.today().strftime("%Y-%m-%d")
 
-            new_author = Author(name=author, biography=bio)
-            new_book = Books(title=book, author=new_author)
-            new_chapter = Chapters(book=new_book, chapter_name=chapter)
-            new_note = Notes(book=new_book, chapter=new_chapter, content=content, created_date=current_date)
+            author_name = db.session.query(Author).filter_by(name=author).first()
+            book_name = db.session.query(Books).filter_by(title=book).first()
+            book_chapter = db.session.query(Chapters).filter_by(book_id=book_name.id, chapter_name=chapter).first()
+            note = db.session.query(Notes).filter_by(book_id=book_name.id, chapter_id=book_chapter.id, content=content).first()
+
+            if author_name and book_name and book_chapter and note:
+                new_obj = False
+                flash("This information is already in the database")
+                return redirect(url_for('admin_interface', new_obj=new_obj))
+
+            if not author_name:
+                new_author = Author(name=author, biography=form.bio.data)
+            else:
+                new_author = author_name
+
+            if not book_name:
+                new_book = Books(title=book, author=new_author)
+            else:
+                new_book = book_name
+
+            if not book_chapter:
+                new_chapter = Chapters(book=new_book, chapter_name=chapter)
+            else:
+                new_chapter = book_chapter
+
+            new_note = Notes(book=new_book, chapter=new_chapter, content=content, created_date=date.today().strftime("%Y-%m-%d"))
 
             try:
                 db.session.add_all([new_author, new_book, new_chapter, new_note])
@@ -80,8 +99,7 @@ def admin_interface():
             except:
                 db_error = True
                 flash('Something went wrong with the database.')
-            finally:
-                return redirect(url_for('admin_interface', db_error=db_error))
+            return redirect(url_for('admin_interface', db_error=db_error))
 
     return render_template('admin_interface.html', form=form)
 

@@ -48,7 +48,7 @@ def admin_route():
             login_user(admin)
             return redirect(url_for('admin_interface'))
         flash('Invalid username or password')
-        return redirect(url_for('admin'))
+        return redirect(url_for('admin_route'))
 
     return render_template('admin_login.html')
 

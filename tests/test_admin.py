@@ -1,9 +1,9 @@
 """
-Flask Selenium Tests
+Admin Login Page Selenium Tests
 
-This module contains test cases for the Flask application using Selenium WebDriver.
-The Selenium WebDriver is used to interact with the application's web pages
-and perform actions such as form submission and URL navigation.
+This module contains test cases for the Admin Login Page using Selenium WebDriver.
+The Selenium WebDriver is used to interact with the web page
+and perform actions such as form submission, URL navigation, and title verifying.
 """
 
 import os

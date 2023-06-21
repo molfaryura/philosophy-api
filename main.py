@@ -31,7 +31,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.query(Admin).get(user_id)
+    return db.session.get(Admin, user_id)
 
 @app.route('/')
 def home():
@@ -64,32 +64,29 @@ def admin_interface():
             chapter = form.chapter.data
             content = form.content.data
 
-            author_name = db.session.query(Author).filter_by(name=author).first()
-            book_name = db.session.query(Books).filter_by(title=book).first()
-            book_chapter = db.session.query(Chapters).filter_by(book_id=book_name.id, chapter_name=chapter).first()
-            note = db.session.query(Notes).filter_by(book_id=book_name.id, chapter_id=book_chapter.id, content=content).first()
-
-            if author_name and book_name and book_chapter and note:
-                new_obj = False
+            try:
+                author_name = db.session.query(Author).filter_by(name=author).first()
+                book_name = db.session.query(Books).filter_by(title=book).first()
+                book_chapter = db.session.query(Chapters).filter_by(book_id=book_name.id, chapter_name=chapter).first()
+                note = db.session.query(Notes).filter_by(book_id=book_name.id, chapter_id=book_chapter.id, content=content).first()
+                already_exists = True
                 flash("This information is already in the database")
-                return redirect(url_for('admin_interface', new_obj=new_obj))
+                return redirect(url_for('admin_interface', already_exists=already_exists))
+            except AttributeError:
 
-            if not author_name:
-                new_author = Author(name=author, biography=form.bio.data)
-            else:
-                new_author = author_name
+                if not author_name:
+                    new_author = Author(name=author, biography=form.bio.data)
+                else:
+                    new_author = author_name
 
-            if not book_name:
-                new_book = Books(title=book, author=new_author)
-            else:
-                new_book = book_name
+                if not book_name:
+                    new_book = Books(title=book, author=new_author)
+                else:
+                    new_book = book_name
 
-            if not book_chapter:
                 new_chapter = Chapters(book=new_book, chapter_name=chapter)
-            else:
-                new_chapter = book_chapter
 
-            new_note = Notes(book=new_book, chapter=new_chapter, content=content, created_date=date.today().strftime("%Y-%m-%d"))
+                new_note = Notes(book=new_book, chapter=new_chapter, content=content, created_date=date.today().strftime("%Y-%m-%d"))
 
             try:
                 db.session.add_all([new_author, new_book, new_chapter, new_note])
@@ -124,7 +121,10 @@ def get_all_books():
             return jsonify(error='This author does not exists'), 404
 
 
-    if books:
+    if books and author_name:
+        all_books = {author_name: [{'id': book.id, 'title': book.title} for book in books]}
+        return jsonify(all_books), 200
+    elif books and not author_name:
         all_books = [{'id': book.id, 'title': book.title} for book in books]
         return jsonify(books=all_books), 200
     else:
@@ -133,6 +133,7 @@ def get_all_books():
 @app.route('/get/notes')
 def get_notes():
     book_name = request.args.get('book')
+    all_notes_by_book = {}
     all_notes = []
 
     if book_name:
@@ -143,9 +144,12 @@ def get_notes():
 
             for note in notes:
                 chapter = db.session.get(Chapters, note.chapter_id)
-                all_notes.append({'id': note.id, 'book': book.title, 'content': note.content, 'chapter': chapter.chapter_name})
+                if book.title not in all_notes_by_book:
+                    all_notes_by_book[book.title] = []
+                all_notes_by_book[book.title].append({'id': note.id, 'content': note.content, 'chapter': chapter.chapter_name})
 
-            return jsonify(all_notes), 200
+
+            return jsonify(all_notes_by_book), 200
         else:
             return jsonify({'message': 'Book not found'}), 404
     else:
@@ -158,6 +162,6 @@ def get_notes():
 
         return jsonify(all_notes), 200
 
+db.init_app(app)
 if __name__ == '__main__':
-    db.init_app(app)
     app.run(debug=True)

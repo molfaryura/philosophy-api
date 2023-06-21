@@ -57,7 +57,7 @@
           <div class="text-center">
             {{ form.submit(class="custom-button", id="colorButton") }}
           </div>
-          {% for message in get_flashed_messages() %} {% if not new_obj or
+          {% for message in get_flashed_messages() %} {% if already_exists or
           db_error %}
           <p class="error text-center" style="margin-top: 20px">
             {{ message }}

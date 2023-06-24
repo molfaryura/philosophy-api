@@ -10,7 +10,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user
 
 from dotenv import load_dotenv
 
-from models import db, Books, Author, Notes, Chapters
+from models import db, Book, Author, Note, Chapter
 
 from admin import Admin
 
@@ -75,9 +75,10 @@ def admin_interface():
 
             try:
                 author_name = db.session.query(Author).filter_by(name=author).first()
-                book_name = db.session.query(Books).filter_by(title=book).first()
-                book_chapter = db.session.query(Chapters).filter_by(book_id=book_name.id, chapter_name=chapter).first()
-                note = db.session.query(Notes).filter_by(book_id=book_name.id, chapter_id=book_chapter.id, content=content).first()
+                book_name = db.session.query(Book).filter_by(title=book).first()
+                book_chapter = db.session.query(Chapter).filter_by(book_id=book_name.id, chapter_name=chapter).first()
+                db.session.query(Note).filter_by(book_id=book_name.id, chapter_id=book_chapter.id, content=content).first()
+
                 already_exists = True
                 flash("This information is already in the database")
                 return redirect(url_for('admin_interface', already_exists=already_exists))
@@ -89,13 +90,13 @@ def admin_interface():
                     new_author = author_name
 
                 if not book_name:
-                    new_book = Books(title=book, author=new_author)
+                    new_book = Book(title=book, author=new_author)
                 else:
                     new_book = book_name
 
-                new_chapter = Chapters(book=new_book, chapter_name=chapter)
+                new_chapter = Chapter(book=new_book, chapter_name=chapter)
 
-                new_note = Notes(book=new_book, chapter=new_chapter, content=content, created_date=date.today().strftime("%Y-%m-%d"))
+                new_note = Note(book=new_book, chapter=new_chapter, content=content, created_date=date.today().strftime("%Y-%m-%d"))
 
             try:
                 db.session.add_all([new_author, new_book, new_chapter, new_note])
@@ -115,62 +116,64 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route('/get/all_books')
-def get_all_books():
+@app.route('/get/all_Book')
+def get_all_Book():
     author_name = request.args.get('author')
 
     if author_name is None:
-        books = db.session.query(Books).all()
+        Book = db.session.query(Book).all()
     else:
         author = Author.query.filter_by(name=author_name).first()
 
         if author:
-            books = Books.query.filter_by(author=author).all()
+            Book = Book.query.filter_by(author=author).all()
         else:
             return jsonify(error='This author does not exists'), 404
 
 
-    if books and author_name:
-        all_books = {author_name: [{'id': book.id, 'title': book.title} for book in books]}
-        return jsonify(all_books), 200
-    elif books and not author_name:
-        all_books = [{'id': book.id, 'title': book.title} for book in books]
-        return jsonify(books=all_books), 200
+    if Book and author_name:
+        all_Book = {author_name: [{'id': book.id, 'title': book.title} for book in Book]}
+        return jsonify(all_Book), 200
+    elif Book and not author_name:
+        all_Book = [{'id': book.id, 'title': book.title} for book in Book]
+        return jsonify(Book=all_Book), 200
     else:
-        return jsonify(error='Sorry, can not find any books'), 404
+        return jsonify(error='Sorry, can not find any Book'), 404
 
-@app.route('/get/notes')
-def get_notes():
+@app.route('/get/Note')
+def get_Note():
     book_name = request.args.get('book')
-    all_notes_by_book = {}
-    all_notes = []
+    all_Note_by_book = {}
+    all_Note = []
 
     if book_name:
-        book = Books.query.filter_by(title=book_name).first()
+        book = Book.query.filter_by(title=book_name).first()
 
         if book:
-            notes = Notes.query.filter_by(book_id=book.id).all()
+            Note = Note.query.filter_by(book_id=book.id).all()
 
-            for note in notes:
-                chapter = db.session.get(Chapters, note.chapter_id)
-                if book.title not in all_notes_by_book:
-                    all_notes_by_book[book.title] = []
-                all_notes_by_book[book.title].append({'id': note.id, 'content': note.content, 'chapter': chapter.chapter_name})
+            for note in Note:
+                chapter = db.session.get(Chapter, note.chapter_id)
+                if book.title not in all_Note_by_book:
+                    all_Note_by_book[book.title] = []
+                all_Note_by_book[book.title].append({'id': note.id, 'content': note.content, 'chapter': chapter.chapter_name})
 
 
-            return jsonify(all_notes_by_book), 200
+            return jsonify(all_Note_by_book), 200
         else:
             return jsonify({'message': 'Book not found'}), 404
     else:
-        notes = Notes.query.all()
+        Note = Note.query.all()
 
-        for note in notes:
-            book = db.session.get(Books, note.book_id)
-            chapter = db.session.get(Chapters, note.chapter_id)
-            all_notes.append({'id': note.id, 'book': book.title, 'content': note.content, 'chapter': chapter.chapter_name})
+        for note in Note:
+            book = db.session.get(Book, note.book_id)
+            chapter = db.session.get(Chapter, note.chapter_id)
+            all_Note.append({'id': note.id, 'book': book.title, 'content': note.content, 'chapter': chapter.chapter_name})
 
-        return jsonify(all_notes), 200
+        return jsonify(all_Note), 200
 
 db.init_app(app)
 if __name__ == '__main__':
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+        app.run(debug=True)

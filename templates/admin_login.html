@@ -37,25 +37,25 @@
                     Please enter your name and password!
                   </p>
                   <form method="post">
+                    {{ form.hidden_tag() }}
                     <div class="form-outline form-white mb-4">
-                      <input
-                        type="text"
-                        name="username"
-                        id="typeUsernameX"
-                        class="form-control form-control-lg"
-                      />
+                      {{ form.username(class="form-control form-control-lg",
+                      id="typeUsernameX") }}
                       <label class="form-label" for="typeUsernameX">Name</label>
                     </div>
 
                     <div class="form-outline form-white mb-4">
-                      <input
-                        type="password"
-                        name="password"
-                        id="typePasswordX"
-                        class="form-control form-control-lg"
-                      />
+                      {{ form.password(class="form-control form-control-lg",
+                      id="typePasswordX") }}
                       <label class="form-label" for="typePasswordX"
                         >Password</label
+                      >
+                    </div>
+                    <div class="form-outline form-white mb-4">
+                      {{ form.secret(class="form-control form-control-lg",
+                      id="typeSecretX") }}
+                      <label class="form-label" for="typeSecretX"
+                        >Secret Word</label
                       >
                     </div>
 

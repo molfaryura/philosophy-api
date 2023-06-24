@@ -1,5 +1,7 @@
 import os
 
+import hashlib
+
 from datetime import date
 
 from flask import Flask, jsonify, request, render_template, redirect, url_for, flash
@@ -12,7 +14,7 @@ from models import db, Books, Author, Notes, Chapters
 
 from admin import Admin
 
-from book_form import BookForm
+from forms import BookForm, AdminForm
 
 app = Flask(__name__)
 
@@ -39,18 +41,25 @@ def home():
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_route():
+    form = AdminForm()
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        secret_word_form = request.form['secret']
 
-        admin = Admin.query.filter_by(username=username).first()
-        if admin and admin.check_password(password=password):
-            login_user(admin)
-            return redirect(url_for('admin_interface'))
-        flash('Invalid username or password')
-        return redirect(url_for('admin_route'))
+        secret_word = os.environ.get('SECRET_WORD')
+        if str(hashlib.sha256(secret_word_form.encode()).hexdigest()) == secret_word:
 
-    return render_template('admin_login.html')
+            admin = Admin.query.filter_by(username=username).first()
+            if admin and admin.check_password(password=password):
+                login_user(admin)
+                return redirect(url_for('admin_interface'))
+            flash('Invalid username or password')
+            return redirect(url_for('admin_route'))
+        else:
+            return redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+
+    return render_template('admin_login.html', form=form)
 
 @app.route('/admin/interface', methods=['GET', 'POST'])
 @login_required

@@ -9,7 +9,7 @@ It includes test cases for retrieving books and notes from the application's API
 
 import logging
 
-from main import app
+from app import app
 
 
 def test_get_all_books():
@@ -103,3 +103,21 @@ def test_get_notes_by_book():
         logging.info(response.json)
 
         assert next(iter(response.json)) == book_name
+
+
+def test_get_authors():
+    """
+    Test case to verify retrieving all authors.
+
+    It sends a GET request to the 'get/authors' endpoint.
+    The test asserts that the response status code is 200, indicating success.
+
+    This test ensures that all authors can be retrieved successfully.
+    """
+
+    with app.test_client() as client:
+        response = client.get('/get/authors')
+
+        logging.info(response.json)
+
+        assert response.status_code == 200

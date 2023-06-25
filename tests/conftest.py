@@ -58,7 +58,7 @@ def authenticated_browser():
 
     The fixture sets up a Chrome WebDriver with specified options and launches
     the browser. It then authenticates the user by navigating to the admin login page,
-    entering the admin username and password, and submitting the login form.
+    entering the admin username, password, secret word, and submitting the login form.
 
     The fixture yields the WebDriver instance for the test to use.
 
@@ -80,6 +80,7 @@ def authenticated_browser():
 
     admin_username = os.environ.get('ADMIN_USERNAME')
     admin_password = os.environ.get('ADMIN_PASSWORD')
+    secret = os.environ.get('TEST_SECRET')
 
     driver.get('http://localhost:5000/admin')
 
@@ -90,6 +91,10 @@ def authenticated_browser():
     password = driver.find_element(By.ID, 'typePasswordX')
     password.click()
     password.send_keys(admin_password)
+
+    secret_word = driver.find_element(By.ID, 'typeSecretX')
+    secret_word.click()
+    secret_word.send_keys(secret)
 
     submit_button = driver.find_element(By.TAG_NAME, 'button')
     submit_button.submit()

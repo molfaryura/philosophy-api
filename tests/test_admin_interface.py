@@ -19,7 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from main import app
 
-from models import Chapters, Books, Notes
+from models import Chapter, Book, Note
 
 
 def test_get_page_if_user_is_not_admin():
@@ -34,7 +34,6 @@ def test_get_page_if_user_is_not_admin():
     with app.test_client() as client:
         response = client.get('/admin/interface')
         assert response.status_code == 401
-
 
 def test_add_new_book(authenticated_browser):
     """
@@ -80,7 +79,6 @@ def test_add_new_book(authenticated_browser):
 
     assert success_message.text == 'Form submitted successfully'
 
-
 def test_book_in_the_database(authenticated_browser):
     """
     Test case to verify that a book and chapter are successfully added to the database
@@ -94,7 +92,7 @@ def test_book_in_the_database(authenticated_browser):
 
     authenticated_browser.get('http://localhost:5000/admin/interface')
 
-    test_data = 'Testingasfasfasfk'
+    test_data = 'TESTING'
 
     author = authenticated_browser.find_element(By.ID, 'author')
     author.click()
@@ -120,15 +118,15 @@ def test_book_in_the_database(authenticated_browser):
     submit_button.submit()
 
     with app.app_context():
-        book = Books.query.filter_by(title=test_data).first()
+        book = Book.query.filter_by(title=test_data).first()
 
-        chapter = Chapters.query.filter_by(chapter_name=test_data).first()
+        chapter = Chapter.query.filter_by(chapter_name=test_data).first()
 
         if book is None or chapter is None:
             pytest.fail(
                 f"Book or chapter not found in the database: {test_data}")
 
-        chapters_query = Notes.query.filter_by(
+        chapters_query = Note.query.filter_by(
             book_id=book.id, chapter_id=chapter.id, content=test_data
         ).first()
 

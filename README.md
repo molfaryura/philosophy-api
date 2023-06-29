@@ -24,8 +24,7 @@ The Philosophy API provides the following endpoints for retrieving data:
 ### Retrieve all books or books by a specific author
 - Endpoint: /get/all_books
 - Method: GET
-- Parameters:
-    - author (optional): Filter books by author name
+- Parameters: author (optional): Filter books by author name
 - Response:
     - If the author parameter is not provided:
         - Body: JSON object with an array of book objects
